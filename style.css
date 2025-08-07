@@ -196,8 +196,8 @@ body {
     padding: 25px;
     border-radius: 10px; 
     box-shadow: 0 6px 20px var(--shadow-light);
-    margin-bottom: 40px;
     border: 1px solid var(--border-color);
+    display: none;
 }
 
 .task-input {
