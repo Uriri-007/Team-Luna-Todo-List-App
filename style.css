@@ -153,7 +153,7 @@ body {
 }
 
 .nav-item.active {
-    background-color: rgba(var(--accent-color), 0.1); 
+    /* background-color: var(--accent-color);  */
     border-left: 5px solid var(--accent-color);
     padding-left: 25px; 
 }
