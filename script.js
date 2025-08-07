@@ -50,7 +50,7 @@ Domaccess.todayInboxPrj.addEventListener("click", () => {
               class="task-input"
             />
             <div class="form-actions">
-              <button type="button" class="btn btn-add">Add</button>
+              <button type="button" class="btn btn-add" onclick="${getNewTask}">Add</button>
               <button type="button" class="btn btn-cancel">Cancel</button>
             </div>
           </div>
@@ -64,6 +64,6 @@ Domaccess.navInboxPrj.addEventListener("click", () => {
 });
 
 function getNewTask(params) {
-    const newTask = new Task(Domaccess.newTaskInput)
-    
+    const newTask = new Task(Domaccess.newTaskInput.value)
+    console.log("newTask.title")
 }
