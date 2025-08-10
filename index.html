@@ -37,10 +37,10 @@
 
           <div class="projects-section">
             <h2>Projects</h2>
-            <ul class="project-list">
-              <li class="add-project-item">
+            <ul class="project-list-house">
+              <li class="add-project-item" id="nav-project">
                 <i class="fas fa-plus"></i>
-                <span class="project-house">Add Project</span>
+                <span>Add Project</span>
               </li>
             </ul>
           </div>
@@ -49,9 +49,10 @@
         <section class="task-area">
           <h2 class="section-title">Inbox</h2>
           <div class="task-list"></div>
-         <div class="task-stat">
-           <p>Oops! There are no current tasks. <br>Check out Today</p>
-         </div>
+          <!-- <div class="project-list"></div> -->
+          <div class="task-stat">
+            <p>Oops! There are no current tasks. <br />Check out Today</p>
+          </div>
         </section>
       </main>
 
@@ -61,43 +62,57 @@
       </footer>
     </div>
 
-    <div class="add-task-form">
-            <div>
-              <label for="task-input-title">Title</label>
-              <input
-              type="text"
-              placeholder="Add a new task..."
-              class="task-input"
-              id="task-input-title"
-            />
-            </div>
+    <div class="form" id="add-task-form">
+      <div>
+        <label for="task-input-title">Title</label>
+        <input
+          type="text"
+          placeholder="Add a new task..."
+          class="task-input"
+          id="task-input-title"
+        />
+      </div>
 
-           <div>
-            <label for="task-input-date">Deadline</label>
-             <input 
-              type="date"  
-              id="task-input-date"
-              />
-           </div>
-             
-              <div>
-                <label for="task-input-priority">Priority</label>
-                 <input
-                type="number" 
-                id="task-input-priority"
-                min="1"
-                max="3"
-                value="1"
-                />
-              </div>
-             
+      <div>
+        <label for="task-input-date">Deadline</label>
+        <input type="date" id="task-input-date" />
+      </div>
 
-            <div class="form-actions">
-              <button type="button" class="btn btn-add">Add</button>
-              <button type="button" class="btn btn-cancel">Cancel</button>
-            </div>
+      <div>
+        <label for="task-input-priority">Priority</label>
+        <input
+          type="number"
+          id="task-input-priority"
+          min="1"
+          max="3"
+          value="1"
+        />
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-add" id="btn-add">Add</button>
+        <button type="button" class="btn btn-cancel" id="btn-cancel">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div class="form" id="project-factory-form">
+      <input 
+        type="text" 
+        placeholder="Project name..."
+        id="project-name" 
+        class="task-input"
+        />
+      <div class="form-actions">
+        <button type="button" class="btn btn-add" id="project-add">Start</button>
+        <button type="button" class="btn btn-cancel" id="project-cancel">
+          Cancel
+        </button>
+      </div>
     </div>
 
     <script src="script.js"></script>
   </body>
 </html>
+
