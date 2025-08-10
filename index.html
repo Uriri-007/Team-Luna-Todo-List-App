@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Classy Todo List</title>
     <link rel="stylesheet" href="style.css" />
-    <!-- <link
+    <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    /> -->
+    />
   </head>
   <body>
     <div class="container">
@@ -49,10 +49,12 @@
         <section class="task-area">
           <h2 class="section-title">Inbox</h2>
           <div class="task-list"></div>
-          <!-- <div class="project-list"></div> -->
           <div class="task-stat">
             <p>Oops! There are no current tasks. <br />Check out Today</p>
           </div>
+          <button type="button" class="btn btn-add-task" id="btn-add-task">
+            Add a new task
+          </button>
         </section>
       </main>
 
@@ -72,12 +74,10 @@
           id="task-input-title"
         />
       </div>
-
       <div>
         <label for="task-input-date">Deadline</label>
         <input type="date" id="task-input-date" />
       </div>
-
       <div>
         <label for="task-input-priority">Priority</label>
         <input
@@ -88,9 +88,8 @@
           value="1"
         />
       </div>
-
       <div class="form-actions">
-        <button type="button" class="btn btn-add" id="btn-add">Add</button>
+        <button type="button" class="btn btn-add" id="btn-add-submit">Add</button>
         <button type="button" class="btn btn-cancel" id="btn-cancel">
           Cancel
         </button>
@@ -98,12 +97,12 @@
     </div>
 
     <div class="form" id="project-factory-form">
-      <input 
-        type="text" 
+      <input
+        type="text"
         placeholder="Project name..."
-        id="project-name" 
+        id="project-name"
         class="task-input"
-        />
+      />
       <div class="form-actions">
         <button type="button" class="btn btn-add" id="project-add">Start</button>
         <button type="button" class="btn btn-cancel" id="project-cancel">
@@ -115,4 +114,3 @@
     <script src="script.js"></script>
   </body>
 </html>
-

@@ -1,6 +1,7 @@
+// A single object to hold all DOM elements for easy access
 const Domaccess = (() => {
-  const allNavLi = document.querySelectorAll("li");
-  const liArr = Array.from(allNavLi);
+  const navItems = document.querySelectorAll('.nav-item');
+  const projectNavItems = document.querySelectorAll('.project-list-house li');
   const navInboxPrj = document.querySelector("#nav-inbox");
   const todayInboxPrj = document.querySelector("#today-nav-inbox");
   const projectLi = document.querySelector("#nav-project");
@@ -9,8 +10,8 @@ const Domaccess = (() => {
   const newTaskDateInput = document.querySelector("#task-input-date");
   const newTaskPriorityInput = document.querySelector("#task-input-priority");
   const newPrjNameInput = document.querySelector("#project-name");
-  const newTaskAddBtn = document.querySelector("#btn-add");
-  const newTaskDelBtn = document.querySelector("#btn-cancel");
+  const newTaskAddBtn = document.querySelector("#btn-add-submit");
+  const newTaskCancelBtn = document.querySelector("#btn-cancel");
   const newPrjAddBtn = document.querySelector("#project-add");
   const newPrjCancelBtn = document.querySelector("#project-cancel");
   const taskAreaSctn = document.querySelector(".task-area");
@@ -20,10 +21,11 @@ const Domaccess = (() => {
   const taskStatDiv = document.querySelector(".task-stat");
   const queenCntainer = document.querySelector(".container");
   const taskList = document.querySelector(".task-list");
-  const projectList = document.querySelector(".project-list");
-
+  const btnAddTask = document.querySelector("#btn-add-task");
+  
   return {
-    liArr,
+    navItems,
+    projectNavItems,
     navInboxPrj,
     todayInboxPrj,
     projectLi,
@@ -33,7 +35,7 @@ const Domaccess = (() => {
     newTaskPriorityInput,
     newPrjNameInput,
     newTaskAddBtn,
-    newTaskDelBtn,
+    newTaskCancelBtn,
     newPrjAddBtn,
     newPrjCancelBtn,
     taskAreaSctn,
@@ -43,218 +45,279 @@ const Domaccess = (() => {
     taskStatDiv,
     queenCntainer,
     taskList,
-    projectList,
+    btnAddTask
   };
 })();
 
-Domaccess.liArr.forEach((elem) => {
-  elem.addEventListener("click", () => {
-    const activeElem = Domaccess.liArr.findIndex((elem) =>
-      elem.classList.contains("active")
-    );
-    Domaccess.liArr[activeElem].classList.remove("active");
-    elem.classList.add("active");
-  });
-});
+// -- DATA MODEL --
+let allTasks = [];
+let allProjects = [];
 
-const allTaskArr = [];
-let currentTaskObj = {};
-const projectArr = [];
+// To track the application state
+let activeView = "inbox"; // Can be 'inbox', 'today', or 'project'
+let activeProject = null; // Stores the active Project object
 
 class Task {
-  constructor(title, date, priority) {
+  constructor(title, date, priority, projectId = null, isCompleted = false) {
+    this.id = this.generateId();
     this.title = title;
     this.date = date;
     this.priority = priority;
+    this.projectId = projectId;
+    this.isCompleted = isCompleted;
+  }
+  generateId() {
+    return `${this.title}-${new Date().getTime()}`;
   }
 }
 
-function refine(value) {
-  if (!value) {
-    alert("Task name cannot be empty");
-    return;
-  } else {
-    return value;
+class Project {
+  constructor(name) {
+    this.id = this.generateId();
+    this.name = name;
+  }
+  generateId() {
+    return `${this.name}-${new Date().getTime()}`;
   }
 }
 
-function displayTaskFactory() {
+// -- LOCAL STORAGE LOGIC --
+function saveToLocalStorage() {
+  localStorage.setItem('allTasks', JSON.stringify(allTasks));
+  localStorage.setItem('allProjects', JSON.stringify(allProjects));
+}
+
+function loadFromLocalStorage() {
+  const storedTasks = localStorage.getItem('allTasks');
+  const storedProjects = localStorage.getItem('allProjects');
+  if (storedTasks) {
+    allTasks = JSON.parse(storedTasks);
+  }
+  if (storedProjects) {
+    allProjects = JSON.parse(storedProjects);
+  }
+}
+
+// -- UI LOGIC --
+function showTaskForm() {
   Domaccess.taskCreatingDiv.style.display = "block";
   Domaccess.queenCntainer.style.display = "none";
 }
 
-function arrangeTaskDetails() {
-  const taskIDIndex = allTaskArr.findIndex(
-    (task) => task.id === currentTaskObj?.id
-  );
-  const taskTitle = Domaccess.newTaskTitleInput.value;
-  const taskDate = Domaccess.newTaskDateInput.value;
-  const taskPriority = Domaccess.newTaskPriorityInput.value;
-  if (taskIDIndex === -1) {
-    // creating a special id for all tasks
-    const date = new Date();
-    const secs = date.getTime();
-    const taskId = `${taskTitle}-${secs}`;
-
-    const newTask = new Task(taskTitle, taskDate, taskPriority);
-    currentTaskObj = {
-      title: newTask.title,
-      date: newTask.date,
-      priority: newTask.priority,
-      id: taskId,
-      category: ""
-    };
-
-    allTaskArr.push(currentTaskObj);
-  } else {
-    const newTask = new Task(taskTitle, taskDate, taskPriority);
-    currentTaskObj.title = newTask.title;
-    currentTaskObj.date = newTask.date;
-    currentTaskObj.priority = newTask.priority;
-    allTaskArr.splice(taskIDIndex, 1, currentTaskObj);
-  }
-
-  currentTaskObj = {};
-  reset();
-}
-
-function deleteTask(self) {
-  const btnAncestor = self.parentElement.parentElement;
-  const taskIndex = allTaskArr.findIndex((task) => task.id === btnAncestor.id);
-  const isDel = confirm("Delete task?");
-  if (isDel === true) {
-    allTaskArr.splice(taskIndex, 1);
-    updateUI();
-    return;
-  }
-}
-
-function editTask(self) {
-  const btnAncestor = self.parentElement.parentElement;
-  const taskIndex = allTaskArr.findIndex((task) => task.id === btnAncestor.id);
-  currentTaskObj = allTaskArr[taskIndex];
-  Domaccess.newTaskTitleInput.value = currentTaskObj.title;
-  Domaccess.newTaskDateInput.value = currentTaskObj.date;
-  Domaccess.newTaskPriorityInput.value = currentTaskObj.priority;
-  displayTaskFactory();
-}
-
-function accomplishTask(self) {
-  const siblings = self.parentElement.children;
-  const siblingsArr = Array.from(siblings).reverse();
-  let [me, ...elders] = siblingsArr;
-
-  elders.forEach((elem) => {
-    elem.classList.toggle("completed");
-  });
-}
-
-function updateUI() {
-  Domaccess.taskList.innerHTML = "";
-
-  allTaskArr.forEach(({ title, date, priority, id }) => {
-    Domaccess.taskList.innerHTML += `
-    <div id="${id}" class="task-item">
-    <div>
-      <h3 class="task-name task-text">${title}</h3>
-      <p class="task-deadline task-text">${date}</p>
-      <p class="task-priority task-text">${priority}</p>
-      <input type="checkbox" class="task-checkbox" onchange="accomplishTask(this)">
-    </div>
-
-    <div class="task-actions">
-       <button type="button" onclick="deleteTask(this)"><i class="fa fa-solid fa-bin"></i></button>
-        <button type="button" onclick="editTask(this)"><i class="fa fa-solid fa-pencil"></i></button>
-    </div>
-
-</div>
-    `;
-  });
-
-  Domaccess.queenCntainer.style.display = "grid";
+function hideTaskForm() {
   Domaccess.taskCreatingDiv.style.display = "none";
-}
-
-function reset() {
+  Domaccess.queenCntainer.style.display = "grid";
+  // Reset form inputs
   Domaccess.newTaskTitleInput.value = "";
   Domaccess.newTaskDateInput.value = "";
   Domaccess.newTaskPriorityInput.value = "1";
 }
 
-function cancel() {
-  reset();
-  Domaccess.queenCntainer.style.display = "grid";
-  Domaccess.taskCreatingDiv.style.display = "none";
-}
-
-function startNewProject() {
-  Domaccess.queenCntainer.style.display = "none";
+function showProjectForm() {
   Domaccess.projectCreatingDiv.style.display = "block";
+  Domaccess.queenCntainer.style.display = "none";
 }
 
-function openUpPrj(self) {
-  const title = self.textContent;
-  Domaccess.taskList.style.display = "none";
-  Domaccess.taskAreaH1.textContent = title;
+function hideProjectForm() {
+  Domaccess.projectCreatingDiv.style.display = "none";
+  Domaccess.queenCntainer.style.display = "grid";
+  Domaccess.newPrjNameInput.value = "";
+}
 
-  const taskArr = [];
+// -- CRUD OPERATIONS --
+function addNewTask() {
+  const title = Domaccess.newTaskTitleInput.value;
+  const date = Domaccess.newTaskDateInput.value;
+  const priority = Domaccess.newTaskPriorityInput.value;
+
+  if (title === "") {
+    alert("Task name cannot be empty");
+    return;
+  }
+
+  const newTask = new Task(title, date, priority, activeProject ? activeProject.id : null);
+  allTasks.push(newTask);
+  saveToLocalStorage();
+  hideTaskForm();
+  renderUI();
+}
+
+function deleteTask(taskId) {
+  const isDel = confirm("Delete task?");
+  if (isDel) {
+    allTasks = allTasks.filter(task => task.id !== taskId);
+    saveToLocalStorage();
+    renderUI();
+  }
+}
+
+function toggleTaskCompletion(taskId) {
+  const taskIndex = allTasks.findIndex(task => task.id === taskId);
+  if (taskIndex !== -1) {
+    allTasks[taskIndex].isCompleted = !allTasks[taskIndex].isCompleted;
+    saveToLocalStorage();
+    renderUI();
+  }
+}
+
+function editTask(taskId) {
+  const task = allTasks.find(t => t.id === taskId);
+  if (task) {
+    Domaccess.newTaskTitleInput.value = task.title;
+    Domaccess.newTaskDateInput.value = task.date;
+    Domaccess.newTaskPriorityInput.value = task.priority;
+    showTaskForm();
+    
+    // Temporarily replace the 'add' button's functionality
+    Domaccess.newTaskAddBtn.onclick = () => {
+      task.title = Domaccess.newTaskTitleInput.value;
+      task.date = Domaccess.newTaskDateInput.value;
+      task.priority = Domaccess.newTaskPriorityInput.value;
+      saveToLocalStorage();
+      hideTaskForm();
+      renderUI();
+      // Restore original functionality
+      Domaccess.newTaskAddBtn.onclick = addNewTask;
+    };
+  }
+}
+
+function addNewProject() {
+  const projectName = Domaccess.newPrjNameInput.value;
+  if (projectName === "") {
+    alert("Project name cannot be empty");
+    return;
+  }
+  const newProject = new Project(projectName);
+  allProjects.push(newProject);
+  saveToLocalStorage();
+  hideProjectForm();
+  renderUI();
+}
+
+// -- MAIN RENDERING LOGIC --
+function renderProjectsSidebar() {
+  Domaccess.projectHousing.innerHTML = "";
   
+  allProjects.forEach(project => {
+    const projectItem = document.createElement('li');
+    projectItem.className = 'nav-item project-item';
+    if (activeView === 'project' && activeProject?.id === project.id) {
+      projectItem.classList.add('active');
+    }
+    projectItem.innerHTML = `<i class="fas fa-folder"></i><span>${project.name}</span>`;
+    projectItem.addEventListener('click', () => {
+      activeView = 'project';
+      activeProject = project;
+      renderUI();
+    });
+    Domaccess.projectHousing.appendChild(projectItem);
+  });
+  
+  // Add the "Add Project" button back
+  const addProjectItem = document.createElement('li');
+  addProjectItem.className = 'add-project-item';
+  addProjectItem.id = 'nav-project';
+  addProjectItem.innerHTML = `<i class="fas fa-plus"></i><span>Add Project</span>`;
+  addProjectItem.addEventListener('click', () => {
+    showProjectForm();
+    // This is a simple implementation, you might want to handle active state
+    // on a project list click more robustly.
+    Domaccess.projectLi.classList.remove('active');
+    Domaccess.navItems.forEach(item => item.classList.remove('active'));
+  });
+  Domaccess.projectHousing.appendChild(addProjectItem);
 }
+
+function renderUI() {
+  // 1. Manage active class for sidebar navigation
+  Domaccess.navItems.forEach(item => item.classList.remove('active'));
+  if (activeView === 'inbox') {
+    Domaccess.navInboxPrj.classList.add('active');
+  } else if (activeView === 'today') {
+    Domaccess.todayInboxPrj.classList.add('active');
+  }
+
+  // 2. Determine which tasks to display based on the active view
+  let tasksToDisplay = [];
+  let title = "";
+  if (activeView === 'inbox') {
+    tasksToDisplay = allTasks;
+    title = "Inbox";
+  } else if (activeView === 'today') {
+    const today = new Date().toISOString().split('T')[0];
+    tasksToDisplay = allTasks.filter(task => task.date === today);
+    title = "Today";
+  } else if (activeView === 'project' && activeProject) {
+    tasksToDisplay = allTasks.filter(task => task.projectId === activeProject.id);
+    title = activeProject.name;
+  }
+  
+  // 3. Update main section title
+  Domaccess.taskAreaH1.textContent = title;
+  
+  // 4. Update task list and status message
+  Domaccess.taskList.innerHTML = ""; // Clear existing tasks
+  if (tasksToDisplay.length === 0) {
+    Domaccess.taskStatDiv.innerHTML = `<p>Oops! No tasks here.</p>`;
+  } else {
+    Domaccess.taskStatDiv.innerHTML = `<p>You have ${tasksToDisplay.length} ${
+      tasksToDisplay.length > 1 ? "tasks" : "task"
+    } in your ${title.toLowerCase()}.</p>`;
+    tasksToDisplay.forEach(task => {
+      Domaccess.taskList.innerHTML += `
+        <div id="${task.id}" class="task-item">
+          <input type="checkbox" class="task-checkbox" ${task.isCompleted ? 'checked' : ''} onchange="toggleTaskCompletion('${task.id}')">
+          <div class="task-details">
+            <h3 class="task-name task-text ${task.isCompleted ? 'completed' : ''}">${task.title}</h3>
+            <p class="task-deadline task-text ${task.isCompleted ? 'completed' : ''}">Deadline: ${task.date}</p>
+            <p class="task-priority task-text ${task.isCompleted ? 'completed' : ''}">Priority: ${task.priority}</p>
+          </div>
+          <div class="task-actions">
+            <button type="button" onclick="editTask('${task.id}')"><i class="fas fa-pencil-alt"></i></button>
+            <button type="button" onclick="deleteTask('${task.id}')"><i class="fas fa-trash-alt"></i></button>
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  // 5. Render the projects in the sidebar
+  renderProjectsSidebar();
+}
+
+// -- EVENT LISTENERS --
+Domaccess.navInboxPrj.addEventListener("click", () => {
+  activeView = "inbox";
+  activeProject = null;
+  renderUI();
+});
 
 Domaccess.todayInboxPrj.addEventListener("click", () => {
-  Domaccess.taskAreaH1.textContent = "Today";
-  if (allTaskArr.length == 0) {
-    Domaccess.taskStatDiv.innerHTML = `<p>Oops! Looks like there are no tasks for today.
-      <br>
-      <button type="button" class="btn" onclick="displayTaskFactory()">Add a new task</button>
-      </p>`;
-  } else {
-    Domaccess.taskStatDiv.innerHTML = `<button type="button" class="btn" onclick="displayTaskFactory()">Add a new task</button>`;
-  }
+  activeView = "today";
+  activeProject = null;
+  renderUI();
 });
 
-Domaccess.navInboxPrj.addEventListener("click", () => {
-  Domaccess.taskAreaH1.textContent = "Inbox";
-  if (allTaskArr.length == 0) {
-    Domaccess.taskStatDiv.innerHTML = `<p>Oops! There are no current tasks in your inbox. <br>Check out Today</p>`;
-  } else {
-    Domaccess.taskStatDiv.innerHTML = `You have ${allTaskArr.length} ${
-      allTaskArr.length > 1 ? "tasks" : "task"
-    } in your inbox`;
-  }
+Domaccess.btnAddTask.addEventListener("click", () => {
+  showTaskForm();
+  Domaccess.newTaskAddBtn.onclick = addNewTask; // Ensure 'add' button creates a new task
 });
 
-Domaccess.newTaskAddBtn.addEventListener("click", () => {
-  Domaccess.taskStatDiv.innerHTML = `<button type="button" class="btn" onclick="displayTaskFactory()">Add a new task</button>`;
-  arrangeTaskDetails();
-  updateUI();
+Domaccess.newTaskAddBtn.addEventListener("click", addNewTask);
+Domaccess.newTaskCancelBtn.addEventListener("click", hideTaskForm);
+
+Domaccess.projectLi.addEventListener("click", showProjectForm);
+Domaccess.newPrjAddBtn.addEventListener("click", addNewProject);
+Domaccess.newPrjCancelBtn.addEventListener("click", hideProjectForm);
+
+// -- INITIALIZATION --
+document.addEventListener("DOMContentLoaded", () => {
+  loadFromLocalStorage();
+  renderUI();
 });
 
-Domaccess.newTaskDelBtn.addEventListener("click", () => {
-  cancel();
-});
-
-Domaccess.newPrjAddBtn.addEventListener("click", () => {
-  const projectName = refine(Domaccess.newPrjNameInput.value);
-  if (projectName) {
-  projectArr.push(projectName);
-
- if (projectArr.length > 0) {
-    Domaccess.projectLi.style.display = "none";
-  }
-
-  Domaccess.queenCntainer.style.display = "grid";
-  Domaccess.projectCreatingDiv.style.display = "none";
-  Domaccess.taskList.style.display = "flex";
-  Domaccess.newPrjNameInput.value = "";
-
-  Domaccess.projectHousing.innerHTML += `<li onclick="openUpPrj(this)">${projectName}</li>`;
-  }
-});
-
-Domaccess.projectLi.addEventListener("click", () => {
-  Domaccess.taskAreaH1.textContent = "Projects";
-  Domaccess.taskStatDiv.innerHTML = `
-  <button type="button" class="btn" onclick="startNewProject()">Start a new project</button>
-  `;
-});
+// To make functions accessible from inline HTML event attributes
+window.deleteTask = deleteTask;
+window.editTask = editTask;
+window.toggleTaskCompletion = toggleTaskCompletion;

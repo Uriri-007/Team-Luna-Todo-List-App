@@ -269,6 +269,27 @@ body {
   transform: translateY(-3px);
 }
 
+.btn-add-task {
+    display: block;
+    margin-top: 20px;
+    width: 100%;
+    text-align: center;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: 600;
+    transition: background-color var(--transition-speed) var(--transition-timing);
+}
+
+.btn-add-task:hover {
+    background-color: #c90082; /* A slightly darker shade of your accent color */
+}
+
+
 /* Task List (for JavaScript added tasks) */
 .task-list {
   display: flex;
