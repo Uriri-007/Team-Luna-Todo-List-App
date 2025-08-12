@@ -52,6 +52,7 @@ const Domaccess = (() => {
 // -- DATA MODEL --
 let allTasks = [];
 let allProjects = [];
+let editMe = "";
 
 // To track the application state
 let activeView = "inbox"; // Can be 'inbox', 'today', or 'project'
@@ -131,12 +132,18 @@ function addNewTask() {
   const priority = Domaccess.newTaskPriorityInput.value;
 
   if (title === "") {
-    alert("Task name cannot be empty");
+    // alert("Task name cannot be empty");
     return;
   }
 
   const newTask = new Task(title, date, priority, activeProject ? activeProject.id : null);
+
+  if (editMe === "") {
   allTasks.push(newTask);
+  }else {
+  allTasks.splice(editMe, 1, newTask);
+  }
+  
   saveToLocalStorage();
   hideTaskForm();
   renderUI();
@@ -148,6 +155,7 @@ function deleteTask(taskId) {
     allTasks = allTasks.filter(task => task.id !== taskId);
     saveToLocalStorage();
     renderUI();
+    return;
   }
 }
 
@@ -161,24 +169,14 @@ function toggleTaskCompletion(taskId) {
 }
 
 function editTask(taskId) {
-  const task = allTasks.find(t => t.id === taskId);
+  const task = allTasks.find(tsk => tsk.id === taskId);
+  const index = allTasks.findIndex(tsk => tsk.title === task.title);
   if (task) {
     Domaccess.newTaskTitleInput.value = task.title;
     Domaccess.newTaskDateInput.value = task.date;
     Domaccess.newTaskPriorityInput.value = task.priority;
+    editMe = index;
     showTaskForm();
-    
-    // Temporarily replace the 'add' button's functionality
-    Domaccess.newTaskAddBtn.onclick = () => {
-      task.title = Domaccess.newTaskTitleInput.value;
-      task.date = Domaccess.newTaskDateInput.value;
-      task.priority = Domaccess.newTaskPriorityInput.value;
-      saveToLocalStorage();
-      hideTaskForm();
-      renderUI();
-      // Restore original functionality
-      Domaccess.newTaskAddBtn.onclick = addNewTask;
-    };
   }
 }
 
@@ -218,13 +216,9 @@ function renderProjectsSidebar() {
   const addProjectItem = document.createElement('li');
   addProjectItem.className = 'add-project-item';
   addProjectItem.id = 'nav-project';
-  addProjectItem.innerHTML = `<i class="fas fa-plus"></i><span>Add Project</span>`;
+  addProjectItem.innerHTML = `<i class="fas fa-plus"></i><span>Add</span>`;
   addProjectItem.addEventListener('click', () => {
     showProjectForm();
-    // This is a simple implementation, you might want to handle active state
-    // on a project list click more robustly.
-    Domaccess.projectLi.classList.remove('active');
-    Domaccess.navItems.forEach(item => item.classList.remove('active'));
   });
   Domaccess.projectHousing.appendChild(addProjectItem);
 }
