@@ -132,7 +132,7 @@ function addNewTask() {
   const priority = Domaccess.newTaskPriorityInput.value;
 
   if (title === "") {
-    // alert("Task name cannot be empty");
+    alert("Task name cannot be empty");
     return;
   }
 
@@ -193,6 +193,12 @@ function addNewProject() {
   renderUI();
 }
 
+function delProject(project, item) {
+  remove(item)
+  console.log(project);
+  
+}
+
 // -- MAIN RENDERING LOGIC --
 function renderProjectsSidebar() {
   Domaccess.projectHousing.innerHTML = "";
@@ -210,6 +216,9 @@ function renderProjectsSidebar() {
       renderUI();
     });
     Domaccess.projectHousing.appendChild(projectItem);
+    projectItem.addEventListener("dblclick", () => {
+      delProject(project, projectItem);
+    });
   });
   
   // Add the "Add Project" button back
@@ -252,6 +261,7 @@ function renderUI() {
   
   // 4. Update task list and status message
   Domaccess.taskList.innerHTML = ""; // Clear existing tasks
+  const num = "⭐";
   if (tasksToDisplay.length === 0) {
     Domaccess.taskStatDiv.innerHTML = `<p>Oops! No tasks here.</p>`;
   } else {
@@ -265,7 +275,7 @@ function renderUI() {
           <div class="task-details">
             <h3 class="task-name task-text ${task.isCompleted ? 'completed' : ''}">${task.title}</h3>
             <p class="task-deadline task-text ${task.isCompleted ? 'completed' : ''}">Deadline: ${task.date}</p>
-            <p class="task-priority task-text ${task.isCompleted ? 'completed' : ''}">Priority: ${task.priority}</p>
+            <p class="task-priority task-text ${task.isCompleted ? 'completed' : ''}">Priority: ${num.repeat(Number(task.priority))}</p>
           </div>
           <div class="task-actions">
             <button type="button" onclick="editTask('${task.id}')"><i class="fas fa-pencil-alt"></i></button>
@@ -293,12 +303,11 @@ Domaccess.todayInboxPrj.addEventListener("click", () => {
   renderUI();
 });
 
+Domaccess.newTaskAddBtn.addEventListener("click", addNewTask);
 Domaccess.btnAddTask.addEventListener("click", () => {
   showTaskForm();
-  Domaccess.newTaskAddBtn.onclick = addNewTask; // Ensure 'add' button creates a new task
 });
 
-Domaccess.newTaskAddBtn.addEventListener("click", addNewTask);
 Domaccess.newTaskCancelBtn.addEventListener("click", hideTaskForm);
 
 Domaccess.projectLi.addEventListener("click", showProjectForm);
