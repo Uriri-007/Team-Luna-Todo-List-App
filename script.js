@@ -1,7 +1,7 @@
 // A single object to hold all DOM elements for easy access
 const Domaccess = (() => {
-  const navItems = document.querySelectorAll('.nav-item');
-  const projectNavItems = document.querySelectorAll('.project-list-house li');
+  const navItems = document.querySelectorAll(".nav-item");
+  const projectNavItems = document.querySelectorAll(".project-list-house li");
   const navInboxPrj = document.querySelector("#nav-inbox");
   const todayInboxPrj = document.querySelector("#today-nav-inbox");
   const projectLi = document.querySelector("#nav-project");
@@ -22,7 +22,7 @@ const Domaccess = (() => {
   const queenCntainer = document.querySelector(".container");
   const taskList = document.querySelector(".task-list");
   const btnAddTask = document.querySelector("#btn-add-task");
-  
+
   return {
     navItems,
     projectNavItems,
@@ -45,7 +45,7 @@ const Domaccess = (() => {
     taskStatDiv,
     queenCntainer,
     taskList,
-    btnAddTask
+    btnAddTask,
   };
 })();
 
@@ -60,8 +60,8 @@ let activeProject = null; // Stores the active Project object
 
 class Task {
   constructor(title, date, priority, projectId = null, isCompleted = false) {
-    this.id = this.generateId();
     this.title = title;
+    this.id = this.generateId();
     this.date = date;
     this.priority = priority;
     this.projectId = projectId;
@@ -74,8 +74,8 @@ class Task {
 
 class Project {
   constructor(name) {
-    this.id = this.generateId();
     this.name = name;
+    this.id = this.generateId();
   }
   generateId() {
     return `${this.name}-${new Date().getTime()}`;
@@ -84,13 +84,13 @@ class Project {
 
 // -- LOCAL STORAGE LOGIC --
 function saveToLocalStorage() {
-  localStorage.setItem('allTasks', JSON.stringify(allTasks));
-  localStorage.setItem('allProjects', JSON.stringify(allProjects));
+  localStorage.setItem("allTasks", JSON.stringify(allTasks));
+  localStorage.setItem("allProjects", JSON.stringify(allProjects));
 }
 
 function loadFromLocalStorage() {
-  const storedTasks = localStorage.getItem('allTasks');
-  const storedProjects = localStorage.getItem('allProjects');
+  const storedTasks = localStorage.getItem("allTasks");
+  const storedProjects = localStorage.getItem("allProjects");
   if (storedTasks) {
     allTasks = JSON.parse(storedTasks);
   }
@@ -136,14 +136,19 @@ function addNewTask() {
     return;
   }
 
-  const newTask = new Task(title, date, priority, activeProject ? activeProject.id : null);
+  const newTask = new Task(
+    title,
+    date,
+    priority,
+    activeProject ? activeProject.id : null
+  );
 
   if (editMe === "") {
-  allTasks.push(newTask);
-  }else {
-  allTasks.splice(editMe, 1, newTask);
+    allTasks.push(newTask);
+  } else {
+    allTasks.splice(editMe, 1, newTask);
   }
-  
+
   saveToLocalStorage();
   hideTaskForm();
   renderUI();
@@ -152,7 +157,7 @@ function addNewTask() {
 function deleteTask(taskId) {
   const isDel = confirm("Delete task?");
   if (isDel) {
-    allTasks = allTasks.filter(task => task.id !== taskId);
+    allTasks = allTasks.filter((task) => task.id !== taskId);
     saveToLocalStorage();
     renderUI();
     return;
@@ -160,7 +165,7 @@ function deleteTask(taskId) {
 }
 
 function toggleTaskCompletion(taskId) {
-  const taskIndex = allTasks.findIndex(task => task.id === taskId);
+  const taskIndex = allTasks.findIndex((task) => task.id === taskId);
   if (taskIndex !== -1) {
     allTasks[taskIndex].isCompleted = !allTasks[taskIndex].isCompleted;
     saveToLocalStorage();
@@ -169,8 +174,8 @@ function toggleTaskCompletion(taskId) {
 }
 
 function editTask(taskId) {
-  const task = allTasks.find(tsk => tsk.id === taskId);
-  const index = allTasks.findIndex(tsk => tsk.title === task.title);
+  const task = allTasks.find((tsk) => tsk.id === taskId);
+  const index = allTasks.findIndex((tsk) => tsk.title === task.title);
   if (task) {
     Domaccess.newTaskTitleInput.value = task.title;
     Domaccess.newTaskDateInput.value = task.date;
@@ -186,6 +191,7 @@ function addNewProject() {
     alert("Project name cannot be empty");
     return;
   }
+
   const newProject = new Project(projectName);
   allProjects.push(newProject);
   saveToLocalStorage();
@@ -193,25 +199,39 @@ function addNewProject() {
   renderUI();
 }
 
-function delProject(project, item) {
-  remove(item)
-  console.log(project);
-  
+function delProject(project) {
+  const isDel = confirm("Delete project?");
+  if (!isDel) {
+    return;
+  }
+  const matchedProjectIndex = allProjects.findIndex(
+    (prj) => prj.id === project.id
+  );
+  const matchedTaskIndex = allTasks.findIndex(
+    (task) => task.projectId === project.id
+  );
+  setTimeout(() => {
+    allProjects.splice(matchedProjectIndex, 1);
+    allTasks.splice(matchedTaskIndex, 1);
+    saveToLocalStorage();
+    renderUI();
+    Domaccess.navInboxPrj.click();
+  }, 1000);
 }
 
 // -- MAIN RENDERING LOGIC --
 function renderProjectsSidebar() {
   Domaccess.projectHousing.innerHTML = "";
-  
-  allProjects.forEach(project => {
-    const projectItem = document.createElement('li');
-    projectItem.className = 'nav-item project-item';
-    if (activeView === 'project' && activeProject?.id === project.id) {
-      projectItem.classList.add('active');
+
+  allProjects.forEach((project) => {
+    const projectItem = document.createElement("li");
+    projectItem.className = "nav-item project-item";
+    if (activeView === "project" && activeProject?.id === project.id) {
+      projectItem.classList.add("active");
     }
     projectItem.innerHTML = `<i class="fas fa-folder"></i><span>${project.name}</span>`;
-    projectItem.addEventListener('click', () => {
-      activeView = 'project';
+    projectItem.addEventListener("click", () => {
+      activeView = "project";
       activeProject = project;
       renderUI();
     });
@@ -220,13 +240,13 @@ function renderProjectsSidebar() {
       delProject(project, projectItem);
     });
   });
-  
+
   // Add the "Add Project" button back
-  const addProjectItem = document.createElement('li');
-  addProjectItem.className = 'add-project-item';
-  addProjectItem.id = 'nav-project';
+  const addProjectItem = document.createElement("li");
+  addProjectItem.className = "add-project-item";
+  addProjectItem.id = "nav-project";
   addProjectItem.innerHTML = `<i class="fas fa-plus"></i><span>Add</span>`;
-  addProjectItem.addEventListener('click', () => {
+  addProjectItem.addEventListener("click", () => {
     showProjectForm();
   });
   Domaccess.projectHousing.appendChild(addProjectItem);
@@ -234,31 +254,33 @@ function renderProjectsSidebar() {
 
 function renderUI() {
   // 1. Manage active class for sidebar navigation
-  Domaccess.navItems.forEach(item => item.classList.remove('active'));
-  if (activeView === 'inbox') {
-    Domaccess.navInboxPrj.classList.add('active');
-  } else if (activeView === 'today') {
-    Domaccess.todayInboxPrj.classList.add('active');
+  Domaccess.navItems.forEach((item) => item.classList.remove("active"));
+  if (activeView === "inbox") {
+    Domaccess.navInboxPrj.classList.add("active");
+  } else if (activeView === "today") {
+    Domaccess.todayInboxPrj.classList.add("active");
   }
 
   // 2. Determine which tasks to display based on the active view
   let tasksToDisplay = [];
   let title = "";
-  if (activeView === 'inbox') {
+  if (activeView === "inbox") {
     tasksToDisplay = allTasks;
     title = "Inbox";
-  } else if (activeView === 'today') {
-    const today = new Date().toISOString().split('T')[0];
-    tasksToDisplay = allTasks.filter(task => task.date === today);
+  } else if (activeView === "today") {
+    const today = new Date().toISOString().split("T")[0];
+    tasksToDisplay = allTasks.filter((task) => task.date === today);
     title = "Today";
-  } else if (activeView === 'project' && activeProject) {
-    tasksToDisplay = allTasks.filter(task => task.projectId === activeProject.id);
+  } else if (activeView === "project" && activeProject) {
+    tasksToDisplay = allTasks.filter(
+      (task) => task.projectId === activeProject.id
+    );
     title = activeProject.name;
   }
-  
+
   // 3. Update main section title
   Domaccess.taskAreaH1.textContent = title;
-  
+
   // 4. Update task list and status message
   Domaccess.taskList.innerHTML = ""; // Clear existing tasks
   const num = "⭐";
@@ -268,24 +290,36 @@ function renderUI() {
     Domaccess.taskStatDiv.innerHTML = `<p>You have ${tasksToDisplay.length} ${
       tasksToDisplay.length > 1 ? "tasks" : "task"
     } in your ${title.toLowerCase()}.</p>`;
-    tasksToDisplay.forEach(task => {
+    tasksToDisplay.forEach((task) => {
       Domaccess.taskList.innerHTML += `
         <div id="${task.id}" class="task-item">
-          <input type="checkbox" class="task-checkbox" ${task.isCompleted ? 'checked' : ''} onchange="toggleTaskCompletion('${task.id}')">
+          <input type="checkbox" class="task-checkbox" ${
+            task.isCompleted ? "checked" : ""
+          } onchange="toggleTaskCompletion('${task.id}')">
           <div class="task-details">
-            <h3 class="task-name task-text ${task.isCompleted ? 'completed' : ''}">${task.title}</h3>
-            <p class="task-deadline task-text ${task.isCompleted ? 'completed' : ''}">Deadline: ${task.date}</p>
-            <p class="task-priority task-text ${task.isCompleted ? 'completed' : ''}">Priority: ${num.repeat(Number(task.priority))}</p>
+            <h3 class="task-name task-text ${
+              task.isCompleted ? "completed" : ""
+            }">${task.title}</h3>
+            <p class="task-deadline task-text ${
+              task.isCompleted ? "completed" : ""
+            }">Deadline: ${task.date}</p>
+            <p class="task-priority task-text ${
+              task.isCompleted ? "completed" : ""
+            }">Priority: ${num.repeat(Number(task.priority))}</p>
           </div>
           <div class="task-actions">
-            <button type="button" onclick="editTask('${task.id}')"><i class="fas fa-pencil-alt"></i></button>
-            <button type="button" onclick="deleteTask('${task.id}')"><i class="fas fa-trash-alt"></i></button>
+            <button type="button" onclick="editTask('${
+              task.id
+            }')"><i class="fas fa-pencil-alt"></i></button>
+            <button type="button" onclick="deleteTask('${
+              task.id
+            }')"><i class="fas fa-trash-alt"></i></button>
           </div>
         </div>
       `;
     });
   }
-  
+
   // 5. Render the projects in the sidebar
   renderProjectsSidebar();
 }
